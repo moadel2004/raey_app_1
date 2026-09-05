@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/di/injection_container.dart';
 import '../../../core/theme/app_theme.dart';
@@ -8,7 +10,6 @@ import '../../medical/screens/animal_medical_history_screen.dart';
 import '../cubit/animals_cubit.dart';
 import '../models/animal_model.dart';
 import '../../farms/models/farm_model.dart';
-import 'animal_form_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class AnimalsListScreen extends StatefulWidget {
@@ -26,16 +27,12 @@ class _AnimalsListScreenState extends State<AnimalsListScreen> {
     context.read<AnimalsCubit>().loadAnimals(widget.farm.id);
   }
 
-  void _openForm({AnimalModel? animal}) {
-    final cubit = context.read<AnimalsCubit>();
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: cubit,
-          child: AnimalFormScreen(animal: animal, farmId: widget.farm.id),
-        ),
-      ),
+  Future<void> _openForm({AnimalModel? animal}) async {
+    await context.push(
+      AppRoutes.animalForm,
+      extra: {'animal': animal, 'farmId': widget.farm.id},
     );
+    if (mounted) context.read<AnimalsCubit>().loadAnimals(widget.farm.id);
   }
 
   void _openHistory(AnimalModel animal) {

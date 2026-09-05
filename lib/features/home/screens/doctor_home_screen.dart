@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/constants/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/models/user_model.dart';
 import '../../vet_profile/cubit/vet_profile_cubit.dart';
 import '../../vet_profile/models/dashboard_model.dart';
-import '../../../core/di/injection_container.dart';
-import '../../consultations/cubit/consultations_cubit.dart';
-import '../../consultations/screens/consultations_list_screen.dart';
-import '../../medical/cubit/medical_cubit.dart';
-import '../../medical/screens/medical_records_list_screen.dart';
-import '../../vet_profile/screens/availability_screen.dart';
-import '../../vet_profile/screens/vet_profile_screen.dart';
 
 class DoctorHomeScreen extends StatefulWidget {
   const DoctorHomeScreen({super.key, required this.user});
@@ -28,58 +23,28 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   }
 
   void _openProfile() {
-    final cubit = context.read<VetProfileCubit>();
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: cubit,
-          child: const VetProfileScreen(),
-        ),
-      ),
-    );
+    context.push(AppRoutes.vetProfile);
   }
 
   void _openAvailability() {
-    final cubit = context.read<VetProfileCubit>();
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: cubit,
-          child: const AvailabilityScreen(),
-        ),
-      ),
-    );
+    context.push(AppRoutes.availability);
   }
 
   void _openMedicalRecords() {
     final vetId = context.read<VetProfileCubit>().cached?.profile.vetId ?? 0;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BlocProvider(
-          create: (_) => sl<MedicalCubit>(),
-          child: MedicalRecordsListScreen(vetId: vetId),
-        ),
-      ),
-    );
+    context.push(AppRoutes.medicalRecords, extra: vetId);
   }
 
   void _openConsultations() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BlocProvider(
-          create: (_) => sl<ConsultationsCubit>(),
-          child: const ConsultationsListScreen(),
-        ),
-      ),
-    );
+    context.push(AppRoutes.consultations);
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<VetProfileCubit, VetProfileState>(
       builder: (context, state) {
-        final cubit     = context.read<VetProfileCubit>();
-        final loaded    = state is VetProfileLoaded ? state : cubit.cached;
+        final cubit = context.read<VetProfileCubit>();
+        final loaded = state is VetProfileLoaded ? state : cubit.cached;
         final dashboard = loaded?.dashboard;
 
         return Column(
@@ -176,9 +141,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
           ),
           const SizedBox(height: 10),
           Text(
-            upcoming > 0
-                ? 'عندك $upcoming حجوزات جاية'
-                : 'أهلاً بيك في راعى',
+            upcoming > 0 ? 'عندك $upcoming حجوزات جاية' : 'أهلاً بيك في راعى',
             style: const TextStyle(
               color: Colors.white70,
               fontSize: 14,
@@ -210,7 +173,12 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, String count, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String count,
+    IconData icon,
+    Color color,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(15),
@@ -228,13 +196,19 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
           children: [
             Icon(icon, color: color),
             const SizedBox(height: 8),
-            Text(count,
-                style: const TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.bold)),
-            Text(title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    color: Colors.grey, fontSize: 12, fontFamily: 'Cairo')),
+            Text(
+              count,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 12,
+                fontFamily: 'Cairo',
+              ),
+            ),
           ],
         ),
       ),
@@ -264,11 +238,17 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             ),
             child: Icon(icon, color: AppColors.primary),
           ),
-          title: Text(title,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
-          subtitle: Text(sub,
-              style: const TextStyle(fontSize: 11, fontFamily: 'Cairo')),
+          title: Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Cairo',
+            ),
+          ),
+          subtitle: Text(
+            sub,
+            style: const TextStyle(fontSize: 11, fontFamily: 'Cairo'),
+          ),
           trailing: Icon(
             Icons.arrow_forward_ios,
             size: 14,

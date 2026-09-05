@@ -45,11 +45,11 @@ class _MainScreenState extends State<MainScreen> {
           );
         }
         if (state is HomeLoaded) {
-          final homeWidget = state.user.isVeterinarian
+          final Widget homeWidget = state.user.isVeterinarian
               ? DoctorHomeScreen(user: state.user)
               : FarmerHomeScreen(user: state.user);
 
-          final screens = [
+          final List<Widget> screens = [
             homeWidget,
             BlocProvider(
               create: (_) => sl<OrdersCubit>(),
@@ -75,8 +75,14 @@ class _MainScreenState extends State<MainScreen> {
               unselectedItemColor: Colors.grey,
               showUnselectedLabels: true,
               type: BottomNavigationBarType.fixed,
-              selectedLabelStyle: const TextStyle(fontFamily: 'Cairo', fontSize: 12),
-              unselectedLabelStyle: const TextStyle(fontFamily: 'Cairo', fontSize: 12),
+              selectedLabelStyle: const TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 12,
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 12,
+              ),
               items: const [
                 BottomNavigationBarItem(
                   icon: Icon(Icons.home_outlined),

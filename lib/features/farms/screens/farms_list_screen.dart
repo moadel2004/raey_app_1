@@ -3,13 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../core/di/injection_container.dart';
 import '../../../core/theme/app_theme.dart';
 import '../cubit/farms_cubit.dart';
 import '../models/farm_model.dart';
-import '../../animals/cubit/animals_cubit.dart';
-import '../../animals/screens/animals_list_screen.dart';
-import 'farm_form_screen.dart';
 
 class FarmsListScreen extends StatefulWidget {
   const FarmsListScreen({super.key});
@@ -29,27 +25,13 @@ class _FarmsListScreenState extends State<FarmsListScreen> {
   }
 
   Future<void> _openAnimals(FarmModel farm) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BlocProvider(
-          create: (_) => sl<AnimalsCubit>(),
-          child: AnimalsListScreen(farm: farm),
-        ),
-      ),
-    );
+    await context.push(AppRoutes.animals, extra: farm);
     if (mounted) context.read<FarmsCubit>().loadFarms();
   }
 
-  void _openForm({FarmModel? farm}) {
-    final cubit = context.read<FarmsCubit>();
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: cubit,
-          child: FarmFormScreen(farm: farm),
-        ),
-      ),
-    );
+  Future<void> _openForm({FarmModel? farm}) async {
+    await context.push(AppRoutes.farmForm, extra: farm);
+    if (mounted) context.read<FarmsCubit>().loadFarms();
   }
 
   Future<void> _confirmDelete(BuildContext context, FarmModel farm) async {
@@ -121,7 +103,11 @@ class _FarmsListScreenState extends State<FarmsListScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.wifi_off_outlined, size: 56, color: Colors.grey),
+                    const Icon(
+                      Icons.wifi_off_outlined,
+                      size: 56,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       state.message,
@@ -145,7 +131,11 @@ class _FarmsListScreenState extends State<FarmsListScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.agriculture_outlined, size: 64, color: Colors.grey),
+                  const Icon(
+                    Icons.agriculture_outlined,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
                   const SizedBox(height: 16),
                   const Text(
                     AppStrings.farmsEmpty,
@@ -214,50 +204,74 @@ class _FarmCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.agriculture, color: AppColors.primary, size: 22),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    farm.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textDark,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.agriculture,
+                    color: AppColors.primary,
+                    size: 22,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      farm.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textDark,
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined,
-                      size: 20, color: AppColors.primary),
-                  onPressed: onEdit,
-                  tooltip: AppStrings.editFarm,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline,
-                      size: 20, color: AppColors.error),
-                  onPressed: onDelete,
-                  tooltip: 'حذف',
-                ),
-                const Icon(Icons.arrow_forward_ios,
-                    size: 14, color: AppColors.primary),
-              ],
-            ),
-            const Divider(height: 16, color: AppColors.border),
-            _InfoRow(Icons.location_on_outlined, AppStrings.farmLocation, farm.location),
-            const SizedBox(height: 6),
-            _InfoRow(Icons.map_outlined, AppStrings.farmRegion, farm.regionName),
-            const SizedBox(height: 6),
-            _InfoRow(Icons.pets_outlined, AppStrings.farmAnimalCount,
-                '${farm.animalCount} حيوان'),
-          ],
+                  IconButton(
+                    icon: const Icon(
+                      Icons.edit_outlined,
+                      size: 20,
+                      color: AppColors.primary,
+                    ),
+                    onPressed: onEdit,
+                    tooltip: AppStrings.editFarm,
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      size: 20,
+                      color: AppColors.error,
+                    ),
+                    onPressed: onDelete,
+                    tooltip: 'حذف',
+                  ),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: AppColors.primary,
+                  ),
+                ],
+              ),
+              const Divider(height: 16, color: AppColors.border),
+              _InfoRow(
+                Icons.location_on_outlined,
+                AppStrings.farmLocation,
+                farm.location,
+              ),
+              const SizedBox(height: 6),
+              _InfoRow(
+                Icons.map_outlined,
+                AppStrings.farmRegion,
+                farm.regionName,
+              ),
+              const SizedBox(height: 6),
+              _InfoRow(
+                Icons.pets_outlined,
+                AppStrings.farmAnimalCount,
+                '${farm.animalCount} حيوان',
+              ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -278,9 +292,10 @@ class _InfoRow extends StatelessWidget {
         Text(
           '$label: ',
           style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textMedium),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textMedium,
+          ),
         ),
         Expanded(
           child: Text(
